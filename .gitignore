@@ -1,0 +1,12 @@
+# Operating system
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Editors
+.vscode/
+.idea/
+
+# Dependencies and generated archives
+node_modules/
+*.zip

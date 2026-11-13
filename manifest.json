@@ -1,0 +1,35 @@
+{
+  "manifest_version": 3,
+  "name": "ئالتۇن-كۈمۈش باھاسى",
+  "version": "1.0.0",
+  "description": "دەل ۋاقتىدىكى خەلقئارالىق ئالتۇن ۋە كۈمۈش باھاسى، ئۆرلەش-تۆۋەنلەش دىئاگراممىسى، ساپلىق ۋە زاكات ھېسابلىغۇچ قىستۇرمىسى.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon-16.png",
+      "32": "icon-32.png",
+      "48": "icon-48.png",
+      "128": "icon-128.png"
+    },
+    "default_title": "ئالتۇن-كۈمۈش دەل ۋاقىت باھاسى"
+  },
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  },
+  "permissions": [
+    "storage",
+    "alarms"
+  ],
+  "host_permissions": [
+    "https://*.goldprice.org/*",
+    "https://data-asg.goldprice.org/*",
+    "https://api.gold-api.com/*",
+    "https://api.metals.dev/*"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self';"
+  }
+}

@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="ug" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ئالتۇن-كۈمۈش باھاسى</title>
+  <style>
+    /* CSS Variables & Dual Theme - Refined Background & Mesh Visibility */
+    :root {
+      /* ئاساسىي تەگلىك رامكا تەگلىكىدىن يورۇقراق قىلىندى */
+      --bg-base: #1e293b;
+      /* خەتنىڭ تەگلىك رامكىلىرى ئەسلىدىكى قېنىق ھالىتىدە ساقلاندى */
+      --bg-card: rgba(15, 23, 42, 0.82);
+      --bg-card-hover: rgba(15, 23, 42, 0.95);
+      --border-subtle: rgba(255, 255, 255, 0.12);
+      --border-accent: rgba(16, 185, 129, 0.4);
+      
+      --text-main: #f8fafc;
+      --text-muted: #cbd5e1;
+      --text-sub: #94a3b8;
+      
+      /* قاراڭغۇ ھالەتتە باھا سانلىرى پارلاق يېشىل ۋە ئاق رەڭدە */
+      --price-primary: #10b981;
+      --price-primary-glow: rgba(16, 185, 129, 0.28);
+      --price-secondary: #f8fafc;
+      
+      --gold-primary: #f59e0b;
+      --gold-light: #fbbf24;
+      --gold-dark: #b45309;
+      --gold-glow: rgba(245, 158, 11, 0.22);
+      
+      --silver-primary: #cbd5e1;
+      --silver-light: #f1f5f9;
+      --silver-dark: #64748b;
+      --silver-glow: rgba(203, 213, 225, 0.22);
+      
+      --bullish: #10b981;
+      --bullish-bg: rgba(16, 185, 129, 0.16);
+      --bullish-border: rgba(16, 185, 129, 0.38);
+      
+      --bearish: #f43f5e;
+      --bearish-bg: rgba(244, 63, 94, 0.16);
+      --bearish-border: rgba(244, 63, 94, 0.38);
+      
+      --neutral: #eab308;
+      --neutral-bg: rgba(234, 179, 8, 0.16);
+      
+      --input-bg: rgba(9, 14, 26, 0.55);
+      --font-family: 'UKIJ Tuz', 'ALKATIP Basma', 'Uyghur Pashto', -apple-system, BlinkMacSystemFont, 'Segoe UI', Tahoma, sans-serif;
+    }
+
+    [data-theme="light"] {
+      --bg-base: #eef2f6;
+      --bg-card: rgba(255, 255, 255, 0.88);
+      --bg-card-hover: #ffffff;
+      --border-subtle: rgba(15, 23, 42, 0.09);
+      --border-accent: rgba(5, 150, 105, 0.35);
+      
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --text-sub: #64748b;
+      
+      /* كۈندۈزلۈك ئاق ھالەتتە باھا سانلىرى قېنىق يېشىل ۋە قارا رەڭدە */
+      --price-primary: #059669;
+      --price-primary-glow: transparent;
+      --price-secondary: #0f172a;
+      
+      --gold-primary: #d97706;
+      --gold-light: #b45309;
+      --gold-glow: rgba(217, 119, 6, 0.12);
+      
+      --silver-primary: #475569;
+      --silver-light: #1e293b;
+      --silver-glow: rgba(71, 85, 105, 0.12);
+      
+      --bullish: #059669;
+      --bullish-bg: rgba(5, 150, 105, 0.12);
+      --bullish-border: rgba(5, 150, 105, 0.3);
+      
+      --bearish: #e11d48;
+      --bearish-bg: rgba(225, 29, 72, 0.12);
+      --bearish-border: rgba(225, 29, 72, 0.3);
+      
+      --input-bg: #f1f5f9;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+    
+    body {
+      width: 380px; min-width: 380px; max-width: 380px;
+      background-color: var(--bg-base);
+      background-image: radial-gradient(circle at 50% 0%, rgba(56, 189, 248, 0.08), transparent 70%);
+      color: var(--text-main);
+      font-family: var(--font-family); font-size: 13px; line-height: 1.6;
+      position: relative; overflow-x: hidden; overflow-y: auto; user-select: none;
+      transition: background-color 0.25s ease, color 0.25s ease;
+    }
+    
+    /* گېئومېتىرىيەلىك ھەرىكەتچان سىزىقلارنىڭ ئېنىق كۆرۈنۈشى ئۈچۈن opacity يۇقىرى كۆتۈرۈلدى */
+    #meshCanvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 0;
+      opacity: 1;
+    }
+    
+    /* backdrop-filter ئېلىۋېتىلدى، شۇڭا ئاستىدىكى سىزىقلار غۇۋالىشىپ يوقاپ كەتمەيدۇ */
+    .app-wrapper {
+      position: relative;
+      z-index: 1;
+      padding: 14px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    
+    /* Header */
+    .header { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 10px; }
+    .brand-group { display: flex; align-items: center; gap: 8px; }
+    .brand-icon { width: 30px; height: 30px; border-radius: 8px; background: linear-gradient(135deg, var(--gold-light), var(--gold-dark)); display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 10px var(--gold-glow); }
+    .brand-icon svg { width: 16px; height: 16px; fill: #ffffff; }
+    .brand-title { font-size: 15px; font-weight: 700; color: var(--text-main); }
+    .brand-sub { font-size: 10px; color: var(--text-muted); }
+    .header-actions { display: flex; align-items: center; gap: 6px; }
+    .icon-btn { background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border-subtle); color: var(--text-muted); border-radius: 7px; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s ease; }
+    .icon-btn:hover { color: var(--text-main); border-color: var(--gold-primary); transform: translateY(-1px); }
+    .icon-btn svg { width: 14px; height: 14px; }
+    
+    /* Metal Selector Tabs */
+    .metal-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg-card); backdrop-filter: blur(8px); padding: 4px; border-radius: 10px; border: 1px solid var(--border-subtle); }
+    .metal-tab { display: flex; align-items: center; justify-content: center; gap: 6px; padding: 7px 10px; border-radius: 7px; border: 1px solid transparent; background: transparent; color: var(--text-muted); font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+    .metal-tab.active-gold { background: linear-gradient(135deg, rgba(245, 158, 11, 0.18), rgba(217, 119, 6, 0.28)); color: var(--gold-light); border-color: rgba(245, 158, 11, 0.4); box-shadow: 0 2px 8px var(--gold-glow); }
+    .metal-tab.active-silver { background: linear-gradient(135deg, rgba(203, 213, 225, 0.18), rgba(148, 163, 184, 0.28)); color: var(--silver-light); border-color: rgba(203, 213, 225, 0.4); box-shadow: 0 2px 8px var(--silver-glow); }
+    
+    /* Price Section */
+    .price-action-grid {
+      display: grid;
+      grid-template-columns: 1.18fr 0.82fr;
+      gap: 12px;
+      padding: 6px 2px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .bounce-action-btn,
+    .bounce-action-btn.primary-gold,
+    .bounce-action-btn.primary-silver {
+      position: relative;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
+      border-radius: 8px;
+      padding: 4px 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 6px;
+      text-align: right;
+      color: var(--text-main);
+      font-family: inherit;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      overflow: visible;
+    }
+    
+    #yesterdayPriceBtn {
+      border-right: 1px solid var(--border-subtle) !important;
+      border-radius: 0;
+      padding-right: 14px;
+    }
+    
+    .bounce-action-btn:hover { transform: translateY(-2px); }
+    .bounce-action-btn:active { transform: translateY(0) scale(0.98); }
+    
+    .btn-label-row { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    
+    /* باھا ئۆرلەش ۋە چۈشۈش ستاتىستىكا بەلگىلىرى */
+    .live-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.2px;
+      direction: ltr;
+      font-variant-numeric: tabular-nums;
+    }
+    .live-badge.up {
+      color: var(--bullish);
+      background: var(--bullish-bg);
+      border: 1px solid var(--bullish-border);
+      box-shadow: 0 2px 8px rgba(16, 185, 129, 0.15);
+    }
+    .live-badge.down {
+      color: var(--bearish);
+      background: var(--bearish-bg);
+      border: 1px solid var(--bearish-border);
+      box-shadow: 0 2px 8px rgba(244, 63, 94, 0.15);
+    }
+    
+    #diffAmountBadge {
+      display: inline-flex;
+      align-items: center;
+      padding: 1px 7px;
+      border-radius: 9999px;
+      background: var(--bullish-bg);
+      border: 1px solid var(--bullish-border);
+      color: var(--bullish) !important;
+      font-size: 10.5px !important;
+      font-weight: 700 !important;
+      direction: ltr;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* باھا سانلىرى */
+    .price-number-container {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      margin-top: 2px;
+    }
+    
+    .price-number {
+      font-size: 27px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      font-variant-numeric: tabular-nums;
+      display: inline-block;
+      line-height: 1.15;
+      color: var(--price-primary);
+      text-shadow: 0 2px 14px var(--price-primary-glow);
+      direction: ltr;
+    }
+    
+    #yesterdayPriceDisplay {
+      font-size: 19px !important;
+      font-weight: 700;
+      color: var(--price-secondary) !important;
+      text-shadow: none;
+    }
+    
+    .price-unit-sub { font-size: 10.5px; color: var(--text-sub); margin-top: 4px; font-weight: 500; }
+
+    /* Sentiment Barometer - خەلقئارا ۋەزىيەت */
+    .sentiment-barometer {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+    }
+    .sentiment-header { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+    .sentiment-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 700;
+      font-size: 11px;
+      padding: 2px 9px;
+      border-radius: 9999px;
+    }
+    .sentiment-status.bullish { color: var(--bullish); background: var(--bullish-bg); border: 1px solid var(--bullish-border); }
+    .sentiment-status.bearish { color: var(--bearish); background: var(--bearish-bg); border: 1px solid var(--bearish-border); }
+    .sentiment-status.neutral { color: var(--neutral); background: var(--neutral-bg); }
+    
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.25); }
+    }
+    .sentiment-status span:first-child { display: inline-block; animation: pulseDot 2s infinite ease-in-out; }
+
+    .sentiment-meter { height: 7px; width: 100%; background: rgba(148, 163, 184, 0.18); border-radius: 9999px; overflow: hidden; position: relative; }
+    .sentiment-fill {
+      height: 100%;
+      border-radius: 9999px;
+      background: linear-gradient(90deg, #059669, #10b981, #34d399) !important;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.4);
+      transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .sentiment-analysis-text { font-size: 11px; color: var(--text-muted); line-height: 1.6; text-align: justify; }
+
+    /* Chart Box - دىئاگرامما رايونى */
+    .chart-box {
+      background: var(--bg-card);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      position: relative;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14);
+    }
+    .chart-controls { display: flex; align-items: center; justify-content: space-between; }
+    .chart-title { font-size: 11.5px; font-weight: 700; color: var(--text-main); }
+    .time-selector { display: flex; gap: 3px; background: var(--input-bg); padding: 3px; border-radius: 7px; border: 1px solid var(--border-subtle); }
+    .time-btn { background: transparent; border: none; color: var(--text-muted); font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px; cursor: pointer; font-family: inherit; transition: all 0.15s ease; }
+    .time-btn.active { background: var(--bullish); color: #ffffff; box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3); }
+    .chart-viewport { width: 100%; height: 112px; position: relative; }
+    .chart-svg { width: 100%; height: 100%; overflow: visible; filter: drop-shadow(0 3px 6px rgba(245, 158, 11, 0.18)); }
+    .chart-tooltip { position: absolute; top: 6px; left: 10px; background: var(--bg-card); border: 1px solid var(--border-accent); color: var(--text-main); padding: 4px 9px; border-radius: 6px; font-size: 10.5px; font-weight: 700; pointer-events: none; display: none; font-variant-numeric: tabular-nums; box-shadow: 0 4px 12px rgba(0,0,0,0.25); }
+
+    /* Utility Tabs & Panels */
+    .utility-tabs { display: flex; gap: 6px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 8px; }
+    .utility-tab-btn { background: transparent; border: 1px solid transparent; color: var(--text-muted); font-family: inherit; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; cursor: pointer; transition: all 0.15s ease; }
+    .utility-tab-btn.active { color: var(--bullish); background: var(--bullish-bg); border-color: var(--bullish-border); }
+    
+    .utility-panel { display: none; flex-direction: column; gap: 10px; background: var(--bg-card); backdrop-filter: blur(8px); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 12px 14px; box-shadow: 0 4px 16px rgba(0, 0, 0, 0.14); }
+    .utility-panel.active { display: flex; }
+    .calc-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .calc-field { display: flex; flex-direction: column; gap: 4px; }
+    .calc-field label { font-size: 10.5px; color: var(--text-muted); font-weight: 600; }
+    .calc-input, .calc-select { background: var(--input-bg); border: 1px solid var(--border-subtle); color: var(--text-main); padding: 6px 9px; border-radius: 7px; font-family: inherit; font-size: 12px; font-weight: 600; outline: none; transition: border-color 0.15s ease; }
+    .calc-input:focus, .calc-select:focus { border-color: var(--bullish); }
+    
+    .calc-result-box { background: var(--bullish-bg); border: 1px solid var(--bullish-border); border-radius: 8px; padding: 9px 12px; display: flex; align-items: center; justify-content: space-between; }
+    .calc-result-label { font-size: 11px; color: var(--text-main); font-weight: 600; }
+    .calc-result-val { font-size: 16px; font-weight: 800; color: var(--price-primary); font-variant-numeric: tabular-nums; direction: ltr; }
+    
+    .footer { display: flex; align-items: center; justify-content: space-between; font-size: 10px; color: var(--text-sub); padding-top: 2px; }
+    .toast { position: fixed; bottom: 12px; right: 50%; transform: translateX(50%) translateY(50px); background: #0f172a; border: 1px solid var(--bullish); color: #fff; padding: 6px 16px; border-radius: 9999px; font-size: 11px; font-weight: 600; z-index: 100; opacity: 0; transition: all 0.25s ease; white-space: nowrap; pointer-events: none; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35); }
+    .toast.show { transform: translateX(50%) translateY(0); opacity: 1; }
+  </style>
+</head>
+<body>
+  <canvas id="meshCanvas"></canvas>
+  <div class="app-wrapper">
+    <header class="header">
+      <div class="brand-group">
+        <div class="brand-icon">
+          <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div>
+          <h1 class="brand-title">ئالتۇن-كۈمۈش باھاسى</h1>
+          <p class="brand-sub">شەرقىي تۈركىستان ئېنترپرائىس نەشرى · V1.0</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button id="themeToggleBtn" class="icon-btn" title="قاراڭغۇ/يورۇق ھالەت"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg></button>
+        <button id="soundToggleBtn" class="icon-btn" title="ئاۋازلىق تەسىر"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg></button>
+        <button id="refreshBtn" class="icon-btn" title="دەرھال يېڭىلاش"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg></button>
+      </div>
+    </header>
+
+    <div class="metal-tabs">
+      <button id="tabGold" class="metal-tab active-gold"><span>🪙</span><span>ئالتۇن (XAU)</span></button>
+      <button id="tabSilver" class="metal-tab"><span>⚪</span><span>كۈمۈش (XAG)</span></button>
+    </div>
+
+    <div class="price-action-grid">
+      <button id="latestPriceBtn" class="bounce-action-btn primary-gold">
+        <div class="btn-label-row">
+          <span>ئەڭ يېڭى نەق باھا</span>
+          <span id="priceChangeBadge" class="live-badge up">+1.42%</span>
+        </div>
+        <div class="price-number-container">
+          <span id="mainPriceDisplay" class="price-number">$2,748.50</span>
+          <div id="mainPriceUnitSub" class="price-unit-sub">1 تروي ئۇنسىيە (31.10 گرام)</div>
+        </div>
+      </button>
+
+      <button id="yesterdayPriceBtn" class="bounce-action-btn">
+        <div class="btn-label-row">
+          <span>تۈنۈگۈنكى يېپىلىش</span>
+          <span id="diffAmountBadge">+$38.50</span>
+        </div>
+        <div class="price-number-container">
+          <span id="yesterdayPriceDisplay" class="price-number">$2,710.00</span>
+          <div class="price-unit-sub">بازار خۇلاسە باھاسى</div>
+        </div>
+      </button>
+    </div>
+
+    <div class="sentiment-barometer">
+      <div class="sentiment-header">
+        <span>خەلقئارا ۋەزىيەت ۋە ئۆسۈش ئېھتىماللىقى</span>
+        <div id="sentimentBadge" class="sentiment-status bullish">
+          <span>●</span>
+          <span id="sentimentText">كۈچلۈك ئۆسۈش بېشارىتى</span>
+        </div>
+      </div>
+      <div class="sentiment-meter">
+        <div id="sentimentBar" class="sentiment-fill" style="width: 78%; background: var(--bullish);"></div>
+      </div>
+      <p id="sentimentDetail" class="sentiment-analysis-text uyghur-indent">
+        نۆۋەتتە خەلقئارالىق مەركىزى بانكىلارنىڭ ئالتۇن زاپىسىنى كۆپەيتىشى ۋە پۇل-پاخاللىقىغا تاقابىل تۇرۇش ئېھتىياجى سەۋەبلىك قىممەتلىك مېتاللارغا بولغان ئېھتىياج كۈچلۈك ئۆسۈش دائىرىسىدە تەڭشەلمەكتە.
+      </p>
+    </div>
+
+    <div class="chart-box">
+      <div class="chart-controls">
+        <span class="chart-title">باھا يۈزلىنىش دىئاگراممىسى</span>
+        <div class="time-selector">
+          <button class="time-btn active" data-period="24h">24س</button>
+          <button class="time-btn" data-period="7d">7ك</button>
+          <button class="time-btn" data-period="30d">30ك</button>
+          <button class="time-btn" data-period="1y">1ي</button>
+        </div>
+      </div>
+      <div class="chart-viewport" id="chartViewport">
+        <div id="chartTooltip" class="chart-tooltip"></div>
+        <svg class="chart-svg" id="priceSvg" viewBox="0 0 348 100" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.0"/>
+            </linearGradient>
+          </defs>
+          <path id="chartAreaPath" fill="url(#chartGradient)" d=""/>
+          <path id="chartLinePath" fill="none" stroke="#f59e0b" stroke-width="2.2" stroke-linecap="round" d=""/>
+          <circle id="chartPulseDot" cx="0" cy="0" r="4" fill="#fbbf24" stroke="#ffffff" stroke-width="1.5" style="display:none;"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="utility-tabs">
+      <button class="utility-tab-btn active" data-target="panelConverter">ساپلىق ۋە ئېغىرلىق</button>
+      <button class="utility-tab-btn" data-target="panelZakat">زاكات نىسابى</button>
+      <button class="utility-tab-btn" data-target="panelAlerts">باھا ئاگاھلاندۇرۇشى</button>
+    </div>
+
+    <div id="panelConverter" class="utility-panel active">
+      <div class="calc-row">
+        <div class="calc-field">
+          <label for="calcWeight">ئېغىرلىقى</label>
+          <input type="number" id="calcWeight" class="calc-input" value="10" min="0.1" step="0.1">
+        </div>
+        <div class="calc-field">
+          <label for="calcUnit">بىرلىكى</label>
+          <select id="calcUnit" class="calc-select">
+            <option value="gram">گرام (Gram)</option>
+            <option value="oz">تروي ئۇنسىيە (Oz)</option>
+            <option value="sar">سەر (Sar ~37.5g)</option>
+            <option value="miskal">مىسقال (Miskal ~4.25g)</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-row">
+        <div class="calc-field">
+          <label for="calcCarat">ساپلىق دەرىجىسى (كارات)</label>
+          <select id="calcCarat" class="calc-select">
+            <option value="24">24K (99.9% ساپ ئالتۇن)</option>
+            <option value="22">22K (91.6% زىبۇ-زىننەت)</option>
+            <option value="18">18K (75.0% زامانىۋى)</option>
+            <option value="14">14K (58.3%)</option>
+          </select>
+        </div>
+        <div class="calc-field">
+          <label for="calcCurrency">پۇل بىرلىكى</label>
+          <select id="calcCurrency" class="calc-select">
+            <option value="USD">USD ($)</option>
+            <option value="EUR">EUR (€)</option>
+            <option value="TRY">TRY (₺)</option>
+            <option value="SAR">SAR (﷼)</option>
+            <option value="AED">AED (د.إ)</option>
+          </select>
+        </div>
+      </div>
+      <div class="calc-result-box">
+        <span class="calc-result-label">تەخمىنىي قىممىتى:</span>
+        <span id="converterResult" class="calc-result-val">$883.60</span>
+      </div>
+    </div>
+
+    <div id="panelZakat" class="utility-panel">
+      <div class="calc-field">
+        <label for="zakatGrams">سىزدىكى جەمئىي ئالتۇن/كۈمۈش (گرام):</label>
+        <input type="number" id="zakatGrams" class="calc-input" value="95" min="1" step="1">
+      </div>
+      <div class="calc-result-box" style="flex-direction:column; align-items:flex-start; gap:4px;">
+        <div style="display:flex; justify-content:space-between; width:100%;">
+          <span class="calc-result-label">نىساب ھالىتى (ئالتۇن 85g / كۈمۈش 595g):</span>
+          <span id="zakatStatusBadge" style="font-weight:700; color:var(--bullish)">نىسابى توشتى ✓</span>
+        </div>
+        <div style="display:flex; justify-content:space-between; width:100%; margin-top:4px;">
+          <span class="calc-result-label">ۋاجىپ زاكات سوممىسى (2.5%):</span>
+          <span id="zakatAmountVal" class="calc-result-val" style="color:var(--bullish)">$209.80</span>
+        </div>
+      </div>
+    </div>
+
+    <div id="panelAlerts" class="utility-panel">
+      <div class="calc-row">
+        <div class="calc-field">
+          <label for="alertThreshold">باھا چەك نىشانى ($):</label>
+          <input type="number" id="alertThreshold" class="calc-input" placeholder="مەسىلەن: 2800" step="10">
+        </div>
+        <div class="calc-field" style="justify-content:flex-end;">
+          <button id="saveAlertBtn" class="calc-input" style="background:var(--bullish); color:#fff; font-weight:700; cursor:pointer; border:none;">ساقلاش</button>
+        </div>
+      </div>
+      <div id="alertFeedback" style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+        نۆۋەتتىكى نىشان: <span id="activeAlertText">تېخى بەلگىلەنمىدى</span>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span>ئىز قوغلاش يوق؛ باھا توردا يېڭىلىنىدۇ</span>
+      <span id="lastUpdatedTime">دەل ۋاقتىدا</span>
+    </footer>
+  </div>
+  <div id="toast" class="toast">باھا يېڭىلاندى ✓</div>
+  <script src="popup.js"></script>
+</body>
+</html>
